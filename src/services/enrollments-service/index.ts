@@ -9,12 +9,13 @@ import { FormatedAddress, ViaCEPAddress } from '@/protocols';
 async function getAddressFromCEP(cep: string) {
 
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
+  console.log(result.data);
 
-  if (!result.data) {
+  if (result.status !== 200 || result.data.erro) {
     throw notFoundError();
   }
 
-  const cepAddress: FormatedAddress = {
+  const fortmatedAdress: FormatedAddress = {
     logradouro: result.data.logradouro,
     complemento: result.data.complemento,
     bairro: result.data.bairro,
@@ -22,7 +23,7 @@ async function getAddressFromCEP(cep: string) {
     uf: result.data.uf
   };
 
-  return cepAddress;
+  return fortmatedAdress;
 }
 
 async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddressByUserIdResult> {
@@ -53,10 +54,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   const enrollment = exclude(params, 'address');
   const address = getAddressForUpsert(params.address);
 
-  console.log(enrollment);
-  console.log(address);
-
-  getAddressFromCEP(address.cep);
+  await getAddressFromCEP(address.cep);
 
   // TODO - Verificar se o CEP é válido antes de associar ao enrollment.
 
